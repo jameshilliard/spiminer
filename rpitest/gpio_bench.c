@@ -2,6 +2,7 @@
 
 int main() {
   //  SetProgramPriority();
+  MaxProgramPriority();
   
   struct timespec sleepValue;
   sleepValue.tv_sec = 0;

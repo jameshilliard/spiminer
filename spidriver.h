@@ -121,5 +121,10 @@ int SetProgramPriority(int priorityLevel)
     return sched_setscheduler (0, SCHED_RR, &sched);
 }
 
+void MaxProgramPriority()
+{
+  SetProgramPriority(sched_get_priority_max (SCHED_RR));
+}
+
 
 #endif
