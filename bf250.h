@@ -1,6 +1,7 @@
 #ifndef _BF250_
 #define _BF250_
 
+#include "utils.h"
 #include "spidriver.h"
 
 // Command
@@ -12,6 +13,33 @@
 #define CMD_SetMask   0x20
 
 #define Toggle_Magic  0xA5000002
+
+// Command Frame
+struct bf250command
+{
+  BYTE  addr:4;
+  BYTE  cmd;
+  BYTE  len;
+  
+} __attribute__((__packed__));
+
+struct bf250status
+{
+  BYTE nonce_counter:4;
+  BYTE end_buffer:2;
+  BYTE start_buffer:2;
+};
+  
+struct bf250resp
+{
+  struct bf250status status;
+  BYTE cmd_checksum;
+  BYTE nonces[48];
+  BYTE nonce_checksum;
+};
+
+// Channel
+
 
 
 // Reset sequence
@@ -43,6 +71,7 @@ void ResetSeq(int n) {
   INP_GPIO(MOSI);SET_GPIO_ALT(MOSI,0);
   INP_GPIO(MISO);SET_GPIO_ALT(MISO,0);
 }
+
 
 
 #endif
