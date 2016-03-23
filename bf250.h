@@ -1,8 +1,13 @@
 #ifndef _BF250_
 #define _BF250_
 
+#include <bcm2835.h>
 #include "utils.h"
-#include "spidriver.h"
+//#include "spidriver.h"
+
+#define SCLK RPI_V2_GPIO_P1_23
+#define MOSI RPI_V2_GPIO_P1_19
+#define MISO RPI_V2_GPIO_P1_21
 
 // Command
 #define CMD_Taskwrite 0x01
@@ -45,31 +50,30 @@ struct bf250resp
 // Reset sequence
 void ResetSeq(int n) {
   int i;
-  struct timespec sleepValue;
-  sleepValue.tv_sec = 0;
-  sleepValue.tv_nsec = 1L;
   
   // Put SCLK to high
-  INP_GPIO(SCLK);OUT_GPIO(SCLK);
-  GPIO_SET = 1 << SCLK;
+  bcm2835_gpio_fsel(SCLK, BCM2835_GPIO_FSEL_OUTP);
+  bcm2835_gpio_write(SCLK, HIGH);
 
   // Generate n cycle on MOSI
-  INP_GPIO(MOSI);OUT_GPIO(MOSI);
-  INP_GPIO(MISO);OUT_GPIO(MISO);
+  bcm2835_gpio_fsel(MOSI, BCM2835_GPIO_FSEL_OUTP);
+  bcm2835_gpio_fsel(MISO, BCM2835_GPIO_FSEL_OUTP);
+
   for (i=0;i<n;i++) {
-    GPIO_SET = 1 << MOSI;
-    nanosleep(sleepValue,NULL);
-    GPIO_CLR = 1 << MOSI;
-    nanosleep(sleepValue,NULL);
+    bcm2835_gpio_write(MOSI,HIGH);
+    bcm2835_st_delay(0,1);
+    bcm2835_gpio_write(MOSI,LOW);
+    bcm2835_st_delay(0,1);
   }
 
   // Put SCLK to low
-  GPIO_CLR = 1 << SCLK;
+  bcm2835_gpio_write(SCLK,LOW);
 
   // Config back to SPI
-  INP_GPIO(SCLK);SET_GPIO_ALT(SCLK,0);
-  INP_GPIO(MOSI);SET_GPIO_ALT(MOSI,0);
-  INP_GPIO(MISO);SET_GPIO_ALT(MISO,0);
+  bcm2835_gpio_fsel(SCLK, BCM2835_GPIO_FSEL_ALT0);
+  bcm2835_gpio_fsel(MOSI, BCM2835_GPIO_FSEL_ALT0);
+  bcm2835_gpio_fsel(MISO, BCM2835_GPIO_FSEL_ALT0);
+  
 }
 
 
