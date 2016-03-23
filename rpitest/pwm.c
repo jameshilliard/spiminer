@@ -1,3 +1,5 @@
+// gcc pwm.c -lbcm2835
+
 #include <bcm2835.h>
 #include <stdio.h>
 
