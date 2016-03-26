@@ -3,7 +3,6 @@
 
 #include <bcm2835.h>
 #include "utils.h"
-//#include "spidriver.h"
 
 #define SCLK RPI_V2_GPIO_P1_23
 #define MOSI RPI_V2_GPIO_P1_19
@@ -33,7 +32,7 @@ struct bf250status
   BYTE nonce_counter:4;
   BYTE end_buffer:2;
   BYTE start_buffer:2;
-};
+} __attribute__((__packed__));;
   
 struct bf250resp
 {
@@ -44,6 +43,23 @@ struct bf250resp
 };
 
 // Channel
+
+// a=start position from right, b=length
+#define BITSLICE(x, a, b) ((x) >> (a)) & ((1 << ((b))) - 1)
+
+BYTE *bitarray;
+
+void initBitArray(int size) {
+  bitarray = (BYTE *)calloc(size / 8 + 1, 1);  
+}
+
+void resetBitArray() {
+  free(bitarray);
+}
+
+static inline void setIndex(BYTE* bitarray, size_t idx) {
+    bitarray[idx / 8] |= (1 << (idx % 8));
+}
 
 
 
