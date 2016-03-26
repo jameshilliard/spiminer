@@ -24,7 +24,6 @@ struct bf250command
   BYTE  addr:4;
   BYTE  cmd;
   BYTE  len;
-  
 } __attribute__((__packed__));
 
 struct bf250status
@@ -33,7 +32,7 @@ struct bf250status
   BYTE end_buffer:2;
   BYTE start_buffer:2;
 } __attribute__((__packed__));;
-  
+
 struct bf250resp
 {
   struct bf250status status;
@@ -50,7 +49,7 @@ struct bf250resp
 BYTE *bitarray;
 
 void initBitArray(int size) {
-  bitarray = (BYTE *)calloc(size / 8 + 1, 1);  
+  bitarray = (BYTE *)calloc(size / 8 + 1, 1);
 }
 
 void resetBitArray() {
@@ -66,7 +65,6 @@ static inline void setIndex(BYTE* bitarray, size_t idx) {
 // Reset sequence
 void ResetSeq(int n) {
   int i;
-  
   // Put SCLK to high
   bcm2835_gpio_fsel(SCLK, BCM2835_GPIO_FSEL_OUTP);
   bcm2835_gpio_write(SCLK, HIGH);
@@ -89,7 +87,6 @@ void ResetSeq(int n) {
   bcm2835_gpio_fsel(SCLK, BCM2835_GPIO_FSEL_ALT0);
   bcm2835_gpio_fsel(MOSI, BCM2835_GPIO_FSEL_ALT0);
   bcm2835_gpio_fsel(MISO, BCM2835_GPIO_FSEL_ALT0);
-  
 }
 
 

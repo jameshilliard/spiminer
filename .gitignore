@@ -34,3 +34,7 @@ miner
 
 # Gtags
 G*
+
+# Temp files
+*.*~
+#*
