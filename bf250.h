@@ -4,6 +4,7 @@
 #include <bcm2835.h>
 #include "utils.h"
 
+
 #define SCLK RPI_V2_GPIO_P1_23
 #define MOSI RPI_V2_GPIO_P1_19
 #define MISO RPI_V2_GPIO_P1_21
