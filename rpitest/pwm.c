@@ -29,9 +29,9 @@ int main(int argc, char **argv)
   bcm2835_pwm_set_mode(PWM1, 1, 1);
   bcm2835_pwm_set_range(PWM1, RANGE*2);
 
+  bcm2835_pwm_set_data(PWM0, 1);
+  bcm2835_pwm_set_data(PWM1, 1);
   while(1) {
-    bcm2835_pwm_set_data(PWM0, 1);
-    bcm2835_pwm_set_data(PWM1, 1);
   }
   bcm2835_close();
   return 0;

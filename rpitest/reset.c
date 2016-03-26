@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "../bf250.h"
 #include <stdio.h>
 
@@ -7,9 +8,8 @@ int main() {
       printf("Failed to map the physical GPIO registers into the virtual memory space.\n");
       return -1;
     }
-  
   while(1) {
-    ResetSeq(5);
+    ResetSeq(3);
   }
   return 0;
 }

@@ -84,8 +84,9 @@ void ResetSeq(int n) {
   bcm2835_gpio_write(SCLK,LOW);
 
   // Config back to SPI
-  bcm2835_gpio_fsel(SCLK, BCM2835_GPIO_FSEL_ALT0);
   bcm2835_gpio_fsel(MOSI, BCM2835_GPIO_FSEL_ALT0);
+  bcm2835_st_delay(0,2);
+  bcm2835_gpio_fsel(SCLK, BCM2835_GPIO_FSEL_ALT0);
   bcm2835_gpio_fsel(MISO, BCM2835_GPIO_FSEL_ALT0);
 }
 
