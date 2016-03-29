@@ -1,6 +1,9 @@
 #ifndef _UTILS_
 #define _UTILS_
 
+#include <stdlib.h>
+#include <string.h>
+
 typedef unsigned char           BYTE;                           /* 8-bit unsigned  */
 typedef unsigned short int      WORD;                           /* 16-bit unsigned */
 typedef unsigned long           DWORD;                          /* 32-bit unsigned */
@@ -13,6 +16,16 @@ BYTE checksum(void *buffer, BYTE len)
       for (i = 0; i < len; ++i)
             sum += (BYTE)(*buf++);
       return sum;
+}
+
+const char *byte_to_binary(BYTE x) {
+      static char b[9];
+      b[0] = '\0';
+      int z;
+      for(z=128;z>0;z>>=1){
+            strcat(b,((x&z)==z)?"1":"0");
+      }
+      return b;
 }
 
 double n2float(DWORD nBits) {
