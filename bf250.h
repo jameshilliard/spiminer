@@ -52,38 +52,37 @@ struct bf250resp
 
 BYTE bitarray[_ARRAY_SIZE];
 
-#define BF16 0b100
-#define OUT0 0b110
-#define OUT1 0b101
-#define DIS  0b111
+#define BF16 4
+#define OUT0 6
+#define OUT1 5
+#define DIS  7
 
 static inline void setIndex(BYTE idx) {
-  bitarray[idx / 8] |= (1 << (idx % 8));
+  bitarray[idx / 8] |= (1 << (7-idx % 8));
 }
 
 static inline void setConfig(BYTE nChan,BYTE config) {
-  int idx = _ARRAY_SIZE*8 - nChan*3;
-  if (config&0b11) setIndex(idx);
-  if (config&0b10) setIndex(idx+1);
-  if (config&0b01) setIndex(idx+2);
+  int idx = (_ARRAY_SIZE)*8 - nChan*3;
+  if (config&4) setIndex(idx);
+  if (config&2) setIndex(idx+1);
+  if (config&1) setIndex(idx+2);
 }
 
 void ClearChannelSeq(){
-  memset(bitarray,0,_ARRAY_SIZE);
+  memset(bitarray,0,(_ARRAY_SIZE));
 }
 
-void SetChannelSeq(BYTE *config) {
-  int len = sizeof(config)/sizeof(BYTE);
+void SetChannelSeq(BYTE *config,int len) {
   int i;
   printf("Conf size %d\n",len);
-  for(i=len;i>0;i--) {
-    setConfig(i,config[len-i]);
+  for(i=0;i<len;i++) {
+    setConfig(len-i,config[i]);
   }
 }
 
 void DumpChannelSeq() {
   int i;
-  for(i=0;i<_ARRAY_SIZE;i++){
+  for(i=0;i<(_ARRAY_SIZE);i++){
     printf("%s",byte_to_binary(bitarray[i]));
   }
   printf("\n");

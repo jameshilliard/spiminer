@@ -24,14 +24,13 @@ void createChannel() {
         printf("BitArray size:%d\n",_ARRAY_SIZE);
         printf("Test1:\n");
         ClearChannelSeq();
-        SetChannelSeq(conf1);
+        SetChannelSeq(conf1,3);
         DumpChannelSeq();
 }
 
 int main(int argc, char *argv[]) {
         int debug = 0;
         int option;
-        char msg[80];
         char *method=NULL;
 
         while ((option=getopt(argc,argv,"dm:"))!=-1) {
@@ -51,10 +50,8 @@ int main(int argc, char *argv[]) {
 
         log_init(7,"miner");
         log_info("miner", "miner started...");
-        sprintf(msg,"debug %s",debug?"on":"off");
-        log_info("miner", msg);
-        sprintf(msg,"calling method %s",method);
-        log_info("miner",msg);
+        log_info("miner", "debug %s",debug?"on":"off");
+        log_info("miner","calling method %s",method);
         if (strcmp(method,"createChannel")==0) {
                 createChannel();
         } else {
