@@ -59,15 +59,16 @@ void createChannel() {
 
 
 void test() {
-        BYTE conf[2] = {OUT0,BF16};
+        BYTE conf[1] = {BF16};
+        BYTE addr =0;
 
+        while(1){
         log_info("miner","reset bf250");
-        ResetSeq(3);
-        ResetSeq(3);
-        ClearChannelSeq();
-        SetChannelSeq(conf,2);
+        ResetSeq(6);
 
-        log_info("miner","creating channel...");
+        log_info("miner","creating channel");
+        ClearChannelSeq();
+        SetChannelSeq(conf,1);
         DumpChannelSeq();
         memset(txbuf,0,BUFSIZE);
         memset(rxbuf,0,BUFSIZE);
@@ -78,9 +79,18 @@ void test() {
         log_info("miner","force task switch");
         memset(txbuf,0,BUFSIZE);
         memset(rxbuf,0,BUFSIZE);
-        txbuf[0]=0x02;
+        txbuf[1]=1<<4|addr;
+        txbuf[2]=0x04;
         bcm2835_spi_transfernb(txbuf,rxbuf,BUFSIZE);
         dumpTxRx();
+
+        bcm2835_st_delay(0,1000);
+        ResetSeq(6);
+
+        bcm2835_st_delay(0,100000);
+        addr++;
+        if(addr>10) addr=0;
+        }
 }
 
 int main(int argc, char *argv[]) {
@@ -119,5 +129,6 @@ int main(int argc, char *argv[]) {
                 log_warn("miner","no such method");
         }
         log_warn("miner", "exiting...");
+        bcm2835_close();
         return EXIT_SUCCESS;
 }
