@@ -1,7 +1,7 @@
 #!/bin/bash
 # onapi:
 #       Work out if we're running on a Raspberry Pi
-grep -q BCM2708 /proc/cpuinfo
+grep -q BCM270 /proc/cpuinfo
 if [ $? = 0 ]; then
   echo Pi
 fi

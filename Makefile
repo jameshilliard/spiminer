@@ -1,9 +1,6 @@
-RASPBERRYPI = $(./onapi)
 CC = gcc
 CFLAGS = -Wall
-ifeq ($(RASPBERRYPI),Pi)
-  CFLAGS += -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
-endif
+CFLAGS += -mcpu=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard
 LFLAGS = -lbcm2835
 
 all: miner

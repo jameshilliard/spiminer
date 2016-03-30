@@ -4,7 +4,7 @@
 #include <bcm2835.h>
 #include "utils.h"
 
-#define _CHAIN_LEN 4
+#define _CHAIN_LEN 2
 
 #define SCLK RPI_V2_GPIO_P1_23
 #define MOSI RPI_V2_GPIO_P1_19
@@ -74,7 +74,6 @@ void ClearChannelSeq(){
 
 void SetChannelSeq(BYTE *config,int len) {
   int i;
-  printf("Conf size %d\n",len);
   for(i=0;i<len;i++) {
     setConfig(len-i,config[i]);
   }
