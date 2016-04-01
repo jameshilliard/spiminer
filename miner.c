@@ -39,8 +39,8 @@ int init() {
                 return 0;
         }
         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
-        bcm2835_spi_setDataMode(BCM2835_SPI_MODE0);
-        bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_65536);
+        bcm2835_spi_setDataMode(BCM2835_SPI_MODE1);
+        bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_128);
         bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
         bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0,LOW);
         return 1;
@@ -59,38 +59,39 @@ void createChannel() {
 
 
 void test() {
-        BYTE conf[1] = {BF16};
+        BYTE conf[2] = {OUT1,BF16};
         BYTE addr =0;
 
-        while(1){
-        log_info("miner","reset bf250");
-        ResetSeq(6);
+	while(1) {
+	  //	  log_info("miner","reset bf250");
+	  while(1) {
+	    ResetSeq(12);
+	    bcm2835_delay(1);
+	  }
+	  // log_info("miner","creating channel");
+	  ClearChannelSeq();
+	  SetChannelSeq(conf,2);
+	  // DumpChannelSeq();
+	  
+	  memset(txbuf,0,BUFSIZE);
+	  memset(rxbuf,0,BUFSIZE);
+	  memcpy(txbuf,bitarray,_ARRAY_SIZE);
+	  // more zeros after chan conf sequence
+	  bcm2835_spi_transfernb(txbuf,rxbuf,_ARRAY_SIZE+1);
+	  // dumpTxRx();
+	  // bcm2835_st_delay(bcm2835_st_read(),1000);
 
-        log_info("miner","creating channel");
-        ClearChannelSeq();
-        SetChannelSeq(conf,1);
-        DumpChannelSeq();
-        memset(txbuf,0,BUFSIZE);
-        memset(rxbuf,0,BUFSIZE);
-        memcpy(txbuf,bitarray,_ARRAY_SIZE);
-        bcm2835_spi_transfernb(txbuf,rxbuf,_ARRAY_SIZE);
-        dumpTxRx();
 
-        log_info("miner","force task switch");
-        memset(txbuf,0,BUFSIZE);
-        memset(rxbuf,0,BUFSIZE);
-        txbuf[1]=1<<4|addr;
-        txbuf[2]=0x04;
-        bcm2835_spi_transfernb(txbuf,rxbuf,BUFSIZE);
-        dumpTxRx();
+	  //        log_info("miner","force task switch");
+	  memset(txbuf,0,BUFSIZE);
+	  memset(rxbuf,0,BUFSIZE);
+	  txbuf[1]=1<<4|addr;
+	  txbuf[2]=0x02;
+	  bcm2835_spi_transfernb(txbuf,rxbuf,BUFSIZE);
+	  bcm2835_st_delay(bcm2835_st_read(),1000);  
+        // dumpTxRx();
+	}
 
-        bcm2835_st_delay(0,1000);
-        ResetSeq(6);
-
-        bcm2835_st_delay(0,100000);
-        addr++;
-        if(addr>10) addr=0;
-        }
 }
 
 int main(int argc, char *argv[]) {

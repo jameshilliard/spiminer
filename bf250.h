@@ -4,7 +4,7 @@
 #include <bcm2835.h>
 #include "utils.h"
 
-#define _CHAIN_LEN 2
+#define _CHAIN_LEN 3
 
 #define SCLK RPI_V2_GPIO_P1_23
 #define MOSI RPI_V2_GPIO_P1_19
@@ -54,8 +54,8 @@ BYTE bitarray[_ARRAY_SIZE];
 
 #define BF16 4
 #define OUT0 6
-#define OUT1 5
-#define DIS  7
+#define OUT1 7
+//#define DIS  7
 
 static inline void setIndex(BYTE idx) {
   bitarray[idx / 8] |= (1 << (7-idx % 8));
@@ -98,19 +98,21 @@ void ResetSeq(int n) {
   bcm2835_gpio_fsel(MOSI, BCM2835_GPIO_FSEL_OUTP);
   bcm2835_gpio_fsel(MISO, BCM2835_GPIO_FSEL_OUTP);
 
+
   for (i=0;i<n;i++) {
     bcm2835_gpio_write(MOSI,HIGH);
-    bcm2835_st_delay(0,1);
+    bcm2835_st_delay(bcm2835_st_read(),1);
     bcm2835_gpio_write(MOSI,LOW);
-    bcm2835_st_delay(0,1);
+    bcm2835_st_delay(bcm2835_st_read(),1);
   }
+
+  bcm2835_st_delay(bcm2835_st_read(),10);
 
   // Put SCLK to low
   bcm2835_gpio_write(SCLK,LOW);
 
   // Config back to SPI
   bcm2835_gpio_fsel(MOSI, BCM2835_GPIO_FSEL_ALT0);
-  bcm2835_st_delay(0,2);
   bcm2835_gpio_fsel(SCLK, BCM2835_GPIO_FSEL_ALT0);
   bcm2835_gpio_fsel(MISO, BCM2835_GPIO_FSEL_ALT0);
 }
