@@ -118,5 +118,19 @@ void ResetSeq(int n) {
 }
 
 
+// generate clock value with prescaler and clock code
+DWORD GetClockValue(BYTE prescaler,BYTE code) {
+  DWORD ret;
+  ret = 0;
+  ret = 0x038<<20;
+  if (prescaler==0) {
+    ret |= 1<<19;
+    ret |= 1<<12;
+  }
+  ret |= ((DWORD)(code&0x3F))<<6;
+  //  ret |= ((DWORD)(code&0x3F))<<13;
+  return __bswap_32(ret);
+}
+
 
 #endif

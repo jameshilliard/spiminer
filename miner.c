@@ -21,6 +21,7 @@ static void usage() {
 #define BUFSIZE 16
 char txbuf[BUFSIZE];
 char rxbuf[BUFSIZE];
+BYTE decRx[BUFSIZE];
 
 void dumpTxRx() {
         log_info("miner","sent");
@@ -40,7 +41,7 @@ int init() {
         }
         bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
         bcm2835_spi_setDataMode(BCM2835_SPI_MODE1);
-        bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_128);
+        bcm2835_spi_setClockDivider(BCM2835_SPI_CLOCK_DIVIDER_256);
         bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
         bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0,LOW);
         return 1;
@@ -59,20 +60,21 @@ void createChannel() {
 
 
 void test() {
-        BYTE conf[2] = {OUT1,BF16};
-        BYTE addr =0;
+  BYTE conf[3] = {OUT1,BF16};
+        BYTE addr =1;
+	DWORD clock;
+	BYTE checksum;
+	int len;
 
 	while(1) {
 	  //	  log_info("miner","reset bf250");
-	  while(1) {
-	    ResetSeq(12);
-	    bcm2835_delay(1);
-	  }
+	    ResetSeq(6);
+
 	  // log_info("miner","creating channel");
 	  ClearChannelSeq();
 	  SetChannelSeq(conf,2);
 	  // DumpChannelSeq();
-	  
+
 	  memset(txbuf,0,BUFSIZE);
 	  memset(rxbuf,0,BUFSIZE);
 	  memcpy(txbuf,bitarray,_ARRAY_SIZE);
@@ -81,15 +83,45 @@ void test() {
 	  // dumpTxRx();
 	  // bcm2835_st_delay(bcm2835_st_read(),1000);
 
-
-	  //        log_info("miner","force task switch");
+	  // log_info("miner","force task switch");
 	  memset(txbuf,0,BUFSIZE);
 	  memset(rxbuf,0,BUFSIZE);
-	  txbuf[1]=1<<4|addr;
-	  txbuf[2]=0x02;
+
+	  // start bit
+	  txbuf[0]=0x01;
+	  // address
+	  txbuf[1]=addr<<4;
+
+	  /* // task switch */
+	  /* txbuf[2]=0x02; */
+	  /* txbuf[3]=0x00; */
+
+	  /* txbuf[2]=0x20; */
+	  /* txbuf[3]=0x03; */
+	  /* txbuf[4]=0x03; */
+
+	  //wrong set clock
+	  txbuf[2] = 0x08;
+	  txbuf[3] = 0x03;
+	  clock = GetClockValue(0,0x32);
+	  memcpy(txbuf+4,(BYTE*)&clock,4);
+
+	  /* txbuf[2]=0x20; */
+	  /* txbuf[3]=0x03; */
+
+	  len = 8;
+	  checksum = chksum(txbuf+2,len-2);
 	  bcm2835_spi_transfernb(txbuf,rxbuf,BUFSIZE);
-	  bcm2835_st_delay(bcm2835_st_read(),1000);  
-        // dumpTxRx();
+          dumpTxRx();
+
+	  printf("Checksum: %02x\n",checksum);
+	  decodeRx(decRx,(BYTE*)rxbuf+len,BUFSIZE-len);
+	  hexdump(decRx,BUFSIZE);
+	  memset(decRx,0,BUFSIZE);
+	  decodeRx2(decRx,(BYTE*)rxbuf+len,BUFSIZE-len);
+	  hexdump(decRx,BUFSIZE);
+	  
+	  bcm2835_delay(10);
 	}
 
 }
