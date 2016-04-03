@@ -5,10 +5,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <stdint.h>
+
 
 typedef unsigned char           BYTE;                           /* 8-bit unsigned  */
 typedef unsigned short int      WORD;                           /* 16-bit unsigned */
-typedef unsigned long           DWORD;                          /* 32-bit unsigned */
+typedef unsigned int            DWORD;                          /* 32-bit unsigned */
+
 
 BYTE checksum(void *buffer, BYTE len)
 {
@@ -18,6 +22,36 @@ BYTE checksum(void *buffer, BYTE len)
       for (i = 0; i < len; ++i)
             sum += (BYTE)(*buf++);
       return sum;
+}
+
+int hex2bin(BYTE *s)
+{
+    int ret=0;
+    int i;
+    for( i=0; i<2; i++ )
+    {
+        char c = *s++;
+        int n=0;
+        if( '0'<=c && c<='9' )
+            n = c-'0';
+        else if( 'a'<=c && c<='f' )
+            n = 10 + c-'a';
+        else if( 'A'<=c && c<='F' )
+            n = 10 + c-'A';
+        ret = n + ret*16;
+    }
+    return ret;
+}
+
+void bin2c(BYTE *buf,BYTE *s,int len) {
+  int i;
+  int offset=0;
+  offset = sprintf(buf,"{\n");
+  for(i=0;i<len;i++){
+    offset+=sprintf(buf+offset,"0x%02x, ",s[i]^0xAA);
+    if (i%8==7) offset+=sprintf(buf+offset,"\n");
+  }
+  sprintf(buf+offset,"0x00, 0x00, 0x00, 0x00 \n};\n");
 }
 
 const char *byte_to_binary(BYTE x) {
