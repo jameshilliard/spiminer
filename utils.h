@@ -10,7 +10,7 @@ typedef unsigned char           BYTE;                           /* 8-bit unsigne
 typedef unsigned short int      WORD;                           /* 16-bit unsigned */
 typedef unsigned long           DWORD;                          /* 32-bit unsigned */
 
-BYTE checksum(void *buffer, BYTE len)
+BYTE chksum(void *buffer, BYTE len)
 {
       BYTE *buf = (BYTE *)buffer;
       BYTE sum;
@@ -47,6 +47,25 @@ void bin_to_strhex(unsigned char *bin, unsigned int binsz, char **result)
       (*result)[i * 2 + 1] = hex_str[(bin[i]     ) & 0x0F];
     }
 }
+
+void decodeRx(BYTE*output,BYTE *rx,int n) {
+  int offset = 33-__builtin_clz(*rx);
+  int i;
+  for(i=0;i<n-1;i++){
+    output[i]=(rx[i]<<offset)|(rx[i+1]>>(8-offset));
+  }
+  output[n-1]=rx[n-1]<<offset;
+}
+
+void decodeRx2(BYTE*output,BYTE *rx,int n) {
+  int offset = 33-__builtin_clz(*rx)+1;
+  int i;
+  for(i=0;i<n-1;i++){
+    output[i]=(rx[i]<<offset)|(rx[i+1]>>(8-offset));
+  }
+  output[n-1]=rx[n-1]<<offset;
+}
+
 
 #ifndef HEXDUMP_COLS
 #define HEXDUMP_COLS 8
