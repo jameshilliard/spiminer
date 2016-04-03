@@ -3,8 +3,8 @@
 #include <string.h>
 #include <getopt.h>
 #include "miner.h"
-#include "hash.h"
 #include "bf250.h"
+#include "sha2.h"
 #define VERSION "1.0"
 
 static void usage() {
