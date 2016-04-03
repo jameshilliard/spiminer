@@ -46,12 +46,12 @@ int hex2bin(BYTE *s)
 void bin2c(BYTE *buf,BYTE *s,int len) {
   int i;
   int offset=0;
-  offset = sprintf(buf,"{\n");
+  offset = sprintf((char *)buf,"{\n");
   for(i=0;i<len;i++){
-    offset+=sprintf(buf+offset,"0x%02x, ",s[i]^0xAA);
-    if (i%8==7) offset+=sprintf(buf+offset,"\n");
+    offset+=sprintf((char *)buf+offset,"0x%02x, ",s[i]^0xAA);
+    if (i%8==7) offset+=sprintf((char *)buf+offset,"\n");
   }
-  sprintf(buf+offset,"0x00, 0x00, 0x00, 0x00 \n};\n");
+  sprintf((char *)buf+offset,"0x00, 0x00, 0x00, 0x00 \n};\n");
 }
 
 const char *byte_to_binary(BYTE x) {
