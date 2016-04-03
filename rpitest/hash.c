@@ -10,7 +10,6 @@ int main() {
   // 7092902a3d787611c6e1cfb95971eb9d5aeebcb7e47a275836a5c5bad35a8369
   
   DWORD header[20]={0};
-  DWORD headerRev[20]={0};
   DWORD hash[8]={0};
   DWORD hash1[8]={0};
   BYTE midstate[32]={0};
@@ -21,20 +20,14 @@ int main() {
     header2[i] = hex2bin(headerHex+i*2);
   }
   hexdump((BYTE *)header,80);
+  printf("============\n");
 
-  printf("=====midstate=======\n");
   calc_midstate(midstate,header2);
   hexdump((BYTE *)midstate,32);
 
-  printf("=====dhash=======\n");
-  flipN((BYTE*)headerRev,header2,80);
-  hexdump((BYTE *)headerRev,80);
-  sha256((BYTE*)headerRev,80,(BYTE*)hash1);
-  sha256((BYTE*)hash1,32,(BYTE*)hash);
-  printf("hash:\n");
-  hexdump((BYTE*)hash,32);
 
   printf("ms3 test\n");
+
 /* Wi 0=CD3F992C 1=037F8197 2=A58E091A */
 /* MS0 A=0CAD7CD1 B=CBE38FD9 C=D14DC164 D=F90EB10B E=819621CF F=358D45CD G=8C14CAE3 H=538EF887 */
 /* MS3 A=5FF18CDD B=8CDA24A4 C=180266F9 D=0CAD7CD1 E=B0CA39FA F=DD30B962 G=36D2CBC6 H=819621CF */
@@ -65,7 +58,7 @@ int main() {
   flipN(newJob,job,76);
   hexdump(newJob,76);
   bin2c(buf,newJob,76);
-  //printf("%s\n",buf);
+  printf("%s\n",buf);
   
   return 0;
 }

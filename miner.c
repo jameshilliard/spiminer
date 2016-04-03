@@ -28,6 +28,13 @@ char TaskTxBuf[TASKBUFSIZE];
 char TaskRxBuf[TASKBUFSIZE];
 BYTE TaskDecRx[BUFSIZE];
 
+typedef struct {
+	BYTE StartTaskBufNum;
+	BYTE EndTaskBufNum;
+	BYTE NonceCounter;
+} s_cmd_status;
+s_cmd_status cmd_status;
+
 void dumpTxRx() {
         log_info("miner","sent");
         hexdump(txbuf,BUFSIZE);
@@ -62,16 +69,17 @@ void createChannel() {
         SetChannelSeq(conf1,3);
         DumpChannelSeq();
 }
-/*
-BYTE TestTask[80] = {
+#if 1//bitfury
+BYTE TestTask0[80] = {
 	0xa6,0x07,0xd6,0x7b,0x61,0x49,0x25,0x73,0x7b,0xe7,0x6b,0xce,0x53,0xa4,0x1b,0xa1,
 	0x2b,0x3c,0x8b,0x65,0x9f,0x27,0xef,0x67,0x26,0xbe,0x60,0x49,0xf9,0x24,0x52,0x2d,
 	0x2b,0x3c,0x8b,0x65,0x9c,0x78,0x61,0x6c,0x77,0x9a,0x13,0xc8,0x1a,0x60,0x93,0x50,
 	0x67,0x95,0x33,0x86,0xa9,0xd5,0x2b,0x3d,0x0f,0x24,0xa3,0xb0,0xa6,0x07,0xd6,0x7b,
 	0xb2,0xa8,0xcc,0x53,0x26,0x70,0x8e,0x0e,0xf5,0x5b,0x26,0x77,0x00,0x00,0x00,0x00,
-};*/
+};
+//#else	//zz
 
-BYTE TestTask[80] ={
+BYTE TestTask1[80] ={
 0xa6, 0x07, 0xd6, 0x7b, 0x61, 0x49, 0x25, 0x73, 
 0x7b, 0xe7, 0x6b, 0xce, 0x53, 0xa4, 0x1b, 0xa1, 
 0x2b, 0x3c, 0x8b, 0x65, 0x9f, 0x27, 0xef, 0x67, 
@@ -83,6 +91,14 @@ BYTE TestTask[80] ={
 0xb2, 0xa8, 0xcc, 0x53, 0x26, 0x70, 0x9f, 0x47, 
 0x12, 0x5f, 0x93, 0x41, 0x00, 0x00, 0x00, 0x00 
 };
+#endif
+
+void Get_Cmd_Status(s_cmd_status* status,BYTE cmd_buf)
+{
+	status->StartTaskBufNum = (cmd_buf>>2)&0x01;
+	status->EndTaskBufNum = (cmd_buf&0x01);
+	status->NonceCounter = (cmd_buf>>4)&0x0F;
+}
 
 void Task_Send_and_Receive(BYTE ChipAddr)
 {
@@ -96,8 +112,14 @@ void Task_Send_and_Receive(BYTE ChipAddr)
 	TaskTxBuf[1]=ChipAddr<<4;// address
 	TaskTxBuf[2] = CMD_Taskwrite;
 	TaskTxBuf[3] = 0x4f;
-	
-	memcpy(TaskTxBuf+4,TestTask,80);
+	if(cmd_status.EndTaskBufNum== 0)
+	{
+		memcpy(TaskTxBuf+4,TestTask0,80);
+	}
+	else
+	{
+		memcpy(TaskTxBuf+4,TestTask1,80);
+	}
 	len = 84;
 	checksum = chksum(TaskTxBuf+2,len-2);
 	
@@ -115,6 +137,7 @@ void Task_Send_and_Receive(BYTE ChipAddr)
 	printf("decode2\n");
 	decodeRx2(TaskDecRx,(BYTE*)TaskRxBuf+len,TASKBUFSIZE-len);
 	hexdump(TaskDecRx,TASKBUFSIZE);
+	Get_Cmd_Status(&cmd_status,TaskDecRx[0]);
 	bcm2835_delay(10);
 }
 
@@ -122,6 +145,9 @@ void Nonce_Send_and_Receive(BYTE ChipAddr)
 {
 	BYTE checksum;
 	int len;
+	BYTE i,cnt;
+	BYTE num = 0xff;
+	
 	memset(TaskTxBuf,0,TASKBUFSIZE);
 	memset(TaskRxBuf,0,TASKBUFSIZE);
   	printf("-------- CMD_ReadNonce --------\n");
@@ -149,6 +175,41 @@ void Nonce_Send_and_Receive(BYTE ChipAddr)
 	decodeRx2(TaskDecRx,(BYTE*)TaskRxBuf+len,TASKBUFSIZE-len);
 	hexdump(TaskDecRx,TASKBUFSIZE);
 	bcm2835_delay(10);
+
+	
+	Get_Cmd_Status(&cmd_status,TaskDecRx[0]);
+	if(TaskDecRx[1] != checksum)
+		{
+		log_info("test", "   CMD    Checknum   Error");
+		}
+	if(chksum(TaskDecRx+2,48) != TaskDecRx[50])
+		{
+		log_info("test", "   Nonce  Checknum   Error");
+		}
+	log_info("test", "status start buf: %d",cmd_status.StartTaskBufNum);
+	log_info("test", "status end buf: %d",cmd_status.EndTaskBufNum);
+	log_info("test", "status nonce counter: %d",cmd_status.NonceCounter);
+	cnt = 0;
+	for(i=0;i<=44;)
+	{
+		if(((TaskDecRx[2+i]&0x0f)==0x0f)&&(TaskDecRx[2+i+1]==0xff)&&(TaskDecRx[2+i+2]==0xff)&&(TaskDecRx[2+i+3]==0xff))
+		{
+		}
+		else if(((TaskDecRx[2+i])==0x00)&&(TaskDecRx[2+i+1]==0x00)&&(TaskDecRx[2+i+2]==0x00)&&(TaskDecRx[2+i+3]==0x00))
+		{
+		}
+		else
+		{		
+			if((i>=4)&&((TaskDecRx[2+i-4]&0x0f)==0x0f)&&(TaskDecRx[2+i+1-4]==0xff)&&(TaskDecRx[2+i+2-4]==0xff)&&(TaskDecRx[2+i+3-4]==0xff))
+			{
+				num = (TaskDecRx[2+i-4]>>4)&0x0f;
+			}
+			printf("buf[%02x]:%x%x%x%x \n",num,TaskDecRx[2+i],TaskDecRx[2+i+1],TaskDecRx[2+i+2],TaskDecRx[2+i+3]);
+			cnt ++;
+		}
+		i += 4;
+	}
+	log_info("test", "total: %d",cnt);	
 }
 
 
@@ -210,6 +271,7 @@ void Cmd_Send_and_Receive(BYTE ChipAddr,BYTE cmd)
 	printf("decode2\n");
 	decodeRx2(decRx,(BYTE*)rxbuf+len,BUFSIZE-len);
 	hexdump(decRx,BUFSIZE);
+	Get_Cmd_Status(&cmd_status,decRx[0]);
 	bcm2835_delay(10);
 }
 
@@ -217,7 +279,7 @@ void test() {
   BYTE conf[3] = {OUT1,BF16};
    BYTE addr =1;
 	
-	//while(1)
+	while(1)
 	{
 		//	  log_info("miner","reset bf250");
 		ResetSeq(6);
@@ -236,31 +298,18 @@ void test() {
 
 		Cmd_Send_and_Receive(addr,CMD_SetClock);
 		Cmd_Send_and_Receive(addr,CMD_SetMask);
-		Cmd_Send_and_Receive(addr,CMD_Switch);
-		Task_Send_and_Receive(addr);
-		Cmd_Send_and_Receive(addr,CMD_Switch);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
-		bcm2835_delay(10);
-		Nonce_Send_and_Receive(addr);
+		Cmd_Send_and_Receive(addr,CMD_Switch);	//第一次切换任务
+		Task_Send_and_Receive(addr);			//发送第一个任务
+		bcm2835_delay(500);
+		Nonce_Send_and_Receive(addr);			
+		bcm2835_delay(500);
+		Nonce_Send_and_Receive(addr);			
+		bcm2835_delay(500);
+		Nonce_Send_and_Receive(addr);			
+		bcm2835_delay(500);
+		Nonce_Send_and_Receive(addr);			
+		bcm2835_delay(5000);
+
 	}
 
 }
